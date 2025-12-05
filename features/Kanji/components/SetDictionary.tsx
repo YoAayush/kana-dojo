@@ -69,7 +69,7 @@ const KanjiSetDictionary = memo(function KanjiSetDictionary({
               <div
                 className={clsx(
                   'h-1/2 ',
-                  'bg-[var(--background-color)] rounded-2xl',
+                  'bg-[var(--background-color)] rounded-xl',
                   'flex flex-row gap-2',
                   // 'border-1 border-[var(--border-color)]',
                   (kanjiObj.onyomi[0] === '' || kanjiObj.onyomi.length === 0) &&
@@ -108,7 +108,7 @@ const KanjiSetDictionary = memo(function KanjiSetDictionary({
               <div
                 className={clsx(
                   'h-1/2',
-                  'bg-[var(--background-color)] rounded-2xl',
+                  'bg-[var(--background-color)] rounded-xl',
                   'flex flex-row gap-2',
 
                   // 'border-1 border-[var(--border-color)]',

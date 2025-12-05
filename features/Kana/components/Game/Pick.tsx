@@ -1,6 +1,6 @@
 'use client';
 import clsx from 'clsx';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { kana } from '@/features/Kana/data/kana';
 import useKanaStore from '@/features/Kana/store/useKanaStore';
 import { CircleCheck, CircleX } from 'lucide-react';
@@ -13,10 +13,13 @@ import { useStopwatch } from 'react-timer-hook';
 import useStats from '@/shared/hooks/useStats';
 import useStatsStore from '@/features/Progress/store/useStatsStore';
 import Stars from '@/shared/components/Game/Stars';
-import SSRAudioButton from '@/shared/components/SSRAudioButton';
 import { useCrazyModeTrigger } from '@/features/CrazyMode/hooks/useCrazyModeTrigger';
+import { getGlobalAdaptiveSelector } from '@/shared/lib/adaptiveSelection';
 
 const random = new Random();
+
+// Get the global adaptive selector for weighted character selection
+const adaptiveSelector = getGlobalAdaptiveSelector();
 
 interface PickGameProps {
   isHidden: boolean;
@@ -68,18 +71,22 @@ const PickGame = ({ isHidden, isReverse = false }: PickGameProps) => {
     Object.entries(selectedPairs2).map(([key, value]) => [value, key])
   );
 
-  // State for normal pick mode
+  // State for normal pick mode - uses weighted selection for adaptive learning
   const [correctKanaChar, setCorrectKanaChar] = useState(() => {
     if (selectedKana.length === 0) return '';
-    return selectedKana[random.integer(0, selectedKana.length - 1)];
+    const selected = adaptiveSelector.selectWeightedCharacter(selectedKana);
+    adaptiveSelector.markCharacterSeen(selected);
+    return selected;
   });
   const correctRomajiChar = selectedPairs[correctKanaChar];
 
-  // State for reverse pick mode
+  // State for reverse pick mode - uses weighted selection for adaptive learning
   const [correctRomajiCharReverse, setCorrectRomajiCharReverse] = useState(
     () => {
       if (selectedRomaji.length === 0) return '';
-      return selectedRomaji[random.integer(0, selectedRomaji.length - 1)];
+      const selected = adaptiveSelector.selectWeightedCharacter(selectedRomaji);
+      adaptiveSelector.markCharacterSeen(selected);
+      return selected;
     }
   );
   const correctKanaCharReverse = random.bool()
@@ -167,13 +174,13 @@ const PickGame = ({ isHidden, isReverse = false }: PickGameProps) => {
       // Normal pick mode logic
       if (selectedChar === correctRomajiChar) {
         handleCorrectAnswer(correctKanaChar);
-        let newRandomKana =
-          selectedKana[random.integer(0, selectedKana.length - 1)];
-        while (newRandomKana === correctKanaChar) {
-          newRandomKana =
-            selectedKana[random.integer(0, selectedKana.length - 1)];
-        }
-        setCorrectKanaChar(newRandomKana);
+        // Use weighted selection - prioritizes characters user struggles with
+        const newKana = adaptiveSelector.selectWeightedCharacter(
+          selectedKana,
+          correctKanaChar
+        );
+        adaptiveSelector.markCharacterSeen(newKana);
+        setCorrectKanaChar(newKana);
         setFeedback(
           <>
             <span>{`${correctKanaChar} = ${correctRomajiChar} `}</span>
@@ -196,13 +203,13 @@ const PickGame = ({ isHidden, isReverse = false }: PickGameProps) => {
         reversedPairs2[selectedChar] === correctRomajiCharReverse
       ) {
         handleCorrectAnswer(correctRomajiCharReverse);
-        let newRandomRomaji =
-          selectedRomaji[random.integer(0, selectedRomaji.length - 1)];
-        while (newRandomRomaji === correctRomajiCharReverse) {
-          newRandomRomaji =
-            selectedRomaji[random.integer(0, selectedRomaji.length - 1)];
-        }
-        setCorrectRomajiCharReverse(newRandomRomaji);
+        // Use weighted selection - prioritizes characters user struggles with
+        const newRomaji = adaptiveSelector.selectWeightedCharacter(
+          selectedRomaji,
+          correctRomajiCharReverse
+        );
+        adaptiveSelector.markCharacterSeen(newRomaji);
+        setCorrectRomajiCharReverse(newRomaji);
         setFeedback(
           <>
             <span>{`${correctRomajiCharReverse} = ${correctKanaCharReverse} `}</span>
@@ -232,15 +239,15 @@ const PickGame = ({ isHidden, isReverse = false }: PickGameProps) => {
     setScore(score + 1);
     setWrongSelectedAnswers([]);
     triggerCrazyMode();
+    // Update adaptive weight system - reduces probability of mastered characters
+    adaptiveSelector.updateCharacterWeight(correctChar, true);
   };
 
   const handleWrongAnswer = (selectedChar: string) => {
     setWrongSelectedAnswers([...wrongSelectedAnswers, selectedChar]);
     playErrorTwice();
-    incrementCharacterScore(
-      isReverse ? correctRomajiCharReverse : correctKanaChar,
-      'wrong'
-    );
+    const currentChar = isReverse ? correctRomajiCharReverse : correctKanaChar;
+    incrementCharacterScore(currentChar, 'wrong');
     incrementWrongAnswers();
     if (score - 1 < 0) {
       setScore(0);
@@ -248,6 +255,8 @@ const PickGame = ({ isHidden, isReverse = false }: PickGameProps) => {
       setScore(score - 1);
     }
     triggerCrazyMode();
+    // Update adaptive weight system - increases probability of difficult characters
+    adaptiveSelector.updateCharacterWeight(currentChar, false);
   };
 
   const displayChar = isReverse ? correctRomajiCharReverse : correctKanaChar;

@@ -12,10 +12,13 @@ import { useStopwatch } from 'react-timer-hook';
 import useStats from '@/shared/hooks/useStats';
 import useStatsStore from '@/features/Progress/store/useStatsStore';
 import Stars from '@/shared/components/Game/Stars';
-import SSRAudioButton from '@/shared/components/SSRAudioButton';
 import { useCrazyModeTrigger } from '@/features/CrazyMode/hooks/useCrazyModeTrigger';
+import { getGlobalAdaptiveSelector } from '@/shared/lib/adaptiveSelection';
 
 const random = new Random();
+
+// Get the global adaptive selector for weighted character selection
+const adaptiveSelector = getGlobalAdaptiveSelector();
 
 interface InputGameProps {
   isHidden: boolean;
@@ -58,14 +61,18 @@ const InputGame = ({ isHidden, isReverse = false }: InputGameProps) => {
       : selectedKana.map((key, i) => [key, selectedRomaji[i]])
   );
 
-  // State for characters
+  // State for characters - uses weighted selection for adaptive learning
   const [correctChar, setCorrectChar] = useState(() => {
     if (isReverse) {
       if (selectedRomaji.length === 0) return '';
-      return selectedRomaji[random.integer(0, selectedRomaji.length - 1)];
+      const selected = adaptiveSelector.selectWeightedCharacter(selectedRomaji);
+      adaptiveSelector.markCharacterSeen(selected);
+      return selected;
     } else {
       if (selectedKana.length === 0) return '';
-      return selectedKana[random.integer(0, selectedKana.length - 1)];
+      const selected = adaptiveSelector.selectWeightedCharacter(selectedKana);
+      adaptiveSelector.markCharacterSeen(selected);
+      return selected;
     }
   });
 
@@ -137,6 +144,8 @@ const InputGame = ({ isHidden, isReverse = false }: InputGameProps) => {
       </>
     );
     triggerCrazyMode();
+    // Update adaptive weight system - reduces probability of mastered characters
+    adaptiveSelector.updateCharacterWeight(correctChar, true);
   };
 
   const handleWrongAnswer = () => {
@@ -157,14 +166,18 @@ const InputGame = ({ isHidden, isReverse = false }: InputGameProps) => {
       setScore(score - 1);
     }
     triggerCrazyMode();
+    // Update adaptive weight system - increases probability of difficult characters
+    adaptiveSelector.updateCharacterWeight(correctChar, false);
   };
 
   const generateNewCharacter = () => {
     const sourceArray = isReverse ? selectedRomaji : selectedKana;
-    let newChar = sourceArray[random.integer(0, sourceArray.length - 1)];
-    while (newChar === correctChar) {
-      newChar = sourceArray[random.integer(0, sourceArray.length - 1)];
-    }
+    // Use weighted selection - prioritizes characters user struggles with
+    const newChar = adaptiveSelector.selectWeightedCharacter(
+      sourceArray,
+      correctChar
+    );
+    adaptiveSelector.markCharacterSeen(newChar);
     setCorrectChar(newChar);
   };
 
