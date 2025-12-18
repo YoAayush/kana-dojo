@@ -713,5 +713,5 @@ export type { TypeName } from './types';
 
 ---
 
-**Last Updated**: December 2024
+**Last Updated**: December 18, 2024
 **Version**: 0.1.11
