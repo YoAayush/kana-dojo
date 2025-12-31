@@ -119,6 +119,7 @@ interface RootLayoutProps {
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
+  // Trigger rebuild: 2025-12-31
   return (
     <html lang='en' suppressHydrationWarning>
       <head>
