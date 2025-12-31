@@ -1,6 +1,6 @@
 'use client';
 import { memo, useMemo } from 'react';
-import useStatsStore from '@/features/Progress/store/useStatsStore';
+import { useStatsDisplay } from '@/features/Progress/facade';
 import { Star } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -32,7 +32,7 @@ const StarItem = memo(({ index, totalStars }: StarItemProps) => (
 StarItem.displayName = 'StarItem';
 
 const Stars = () => {
-  const stars = useStatsStore(state => state.stars);
+  const { stars } = useStatsDisplay();
 
   // Memoize the star array to prevent recreation on every render
   const starElements = useMemo(

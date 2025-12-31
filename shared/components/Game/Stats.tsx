@@ -17,8 +17,7 @@ import {
   ChevronsLeft,
   LucideIcon
 } from 'lucide-react';
-import useStatsStore from '@/features/Progress/store/useStatsStore';
-import { useShallow } from 'zustand/react/shallow';
+import { useStatsDisplay } from '@/features/Progress/facade';
 import { findHighestCounts } from '@/shared/lib/helperFunctions';
 import { useClick } from '@/shared/hooks/useAudio';
 
@@ -35,7 +34,8 @@ interface StatCardProps {
 
 const Stats: React.FC = () => {
   const { playClick } = useClick();
-  const toggleStats = useStatsStore(state => state.toggleStats);
+  const statsData = useStatsDisplay();
+  const toggleStats = statsData.toggleStats;
 
   // Handle ESC key to close stats
   useEffect(() => {
@@ -50,24 +50,13 @@ const Stats: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, [playClick, toggleStats]);
 
-  // Get data from store (combined selector for better performance)
-  const {
-    numCorrectAnswers,
-    numWrongAnswers,
-    characterHistory,
-    totalMilliseconds,
-    correctAnswerTimes,
-    characterScores
-  } = useStatsStore(
-    useShallow(state => ({
-      numCorrectAnswers: state.numCorrectAnswers,
-      numWrongAnswers: state.numWrongAnswers,
-      characterHistory: state.characterHistory,
-      totalMilliseconds: state.totalMilliseconds,
-      correctAnswerTimes: state.correctAnswerTimes,
-      characterScores: state.characterScores
-    }))
-  );
+  // Get data from facade
+  const numCorrectAnswers = statsData.correctAnswers;
+  const numWrongAnswers = statsData.wrongAnswers;
+  const characterHistory = statsData.characterHistory;
+  const totalMilliseconds = statsData.totalMilliseconds;
+  const correctAnswerTimes = statsData.correctAnswerTimes;
+  const characterScores = statsData.characterScores;
 
   // Memoized stat calculations
   const stats = useMemo(() => {

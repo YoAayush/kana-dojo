@@ -1,12 +1,11 @@
 'use client';
-import useStatsStore from '@/features/Progress/store/useStatsStore';
+import { useStatsDisplay } from '@/features/Progress/facade';
 // import { Star } from 'lucide-react';
 import clsx from 'clsx';
 import { animalIcons } from '@/shared/lib/icons';
 
 const Stars = () => {
-  // const stars = useStatsStore(state => state.stars);
-  const iconIndices = useStatsStore(state => state.iconIndices);
+  const { iconIndices } = useStatsDisplay();
   const animalIconsToDisplay = iconIndices.map(index => animalIcons[index]);
 
   return (

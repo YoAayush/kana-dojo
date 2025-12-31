@@ -19,6 +19,15 @@ export function useStatsDisplay() {
     characterScores: state.characterScores,
     showStats: state.showStats,
     toggleStats: state.toggleStats,
+    iconIndices: state.iconIndices,
+    score: state.score,
+    setScore: state.setScore,
+    setStars: state.setStars,
+    addIconIndex: state.addIconIndex,
+    setNewTotalMilliseconds: state.setNewTotalMilliseconds,
+    saveSession: state.saveSession,
+    totalMilliseconds: state.totalMilliseconds,
+    correctAnswerTimes: state.correctAnswerTimes,
 
     // All-time stats
     totalSessions: state.allTimeStats.totalSessions,

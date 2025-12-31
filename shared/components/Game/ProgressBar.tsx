@@ -1,6 +1,6 @@
 'use client';
 import { useEffect } from 'react';
-import useStatsStore from '@/features/Progress/store/useStatsStore';
+import { useStatsDisplay } from '@/features/Progress/facade';
 // import useIndefiniteConfetti from '@/lib/hooks/useInfiniteConfetti';
 import { Random } from 'random-js';
 import { animalIconsLength } from '@/shared/lib/icons';
@@ -24,13 +24,7 @@ const ProgressBar = ({
   max = 20
 }: // checkpoints = [10, 25, 50, 75] // Default checkpoints at 25%, 50%, 75%
 ProgressBarProps) => {
-  const score = useStatsStore(state => state.score);
-  const setScore = useStatsStore(state => state.setScore);
-
-  const stars = useStatsStore(state => state.stars);
-  const setStars = useStatsStore(state => state.setStars);
-
-  const addIconIndex = useStatsStore(state => state.addIconIndex);
+  const { score, setScore, stars, setStars, addIconIndex } = useStatsDisplay();
 
   const percentage = (score / max) * 100;
 

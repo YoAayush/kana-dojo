@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import { Link } from '@/core/i18n/routing';
 import { useClick } from '@/shared/hooks/useAudio';
 import { useStopwatch } from 'react-timer-hook';
-import useStatsStore from '@/features/Progress/store/useStatsStore';
+import { useStatsDisplay } from '@/features/Progress/facade';
 import {
   X,
   SquareCheck,
@@ -52,13 +52,14 @@ const Return = ({ isHidden, href, gameMode }: ReturnProps) => {
   const totalTimeStopwatch = useStopwatch({ autoStart: false });
   const buttonRef = useRef<HTMLAnchorElement | null>(null);
 
-  const saveSession = useStatsStore(s => s.saveSession);
-  const numCorrectAnswers = useStatsStore(s => s.numCorrectAnswers);
-  const numWrongAnswers = useStatsStore(s => s.numWrongAnswers);
-  const numStars = useStatsStore(s => s.stars);
-  const currentStreak = useStatsStore(s => s.currentStreak);
-  const toggleStats = useStatsStore(s => s.toggleStats);
-  const setNewTotalMilliseconds = useStatsStore(s => s.setNewTotalMilliseconds);
+  const stats = useStatsDisplay();
+  const saveSession = stats.saveSession;
+  const numCorrectAnswers = stats.correctAnswers;
+  const numWrongAnswers = stats.wrongAnswers;
+  const numStars = stats.stars;
+  const currentStreak = stats.currentStreak;
+  const toggleStats = stats.toggleStats;
+  const setNewTotalMilliseconds = stats.setNewTotalMilliseconds;
 
   const { playClick } = useClick();
 
