@@ -41,65 +41,48 @@ interface TileProps {
   id: string;
   char: string;
   onClick: () => void;
-  isPlaced?: boolean;
   isDisabled?: boolean;
   isBlank?: boolean; // For blank placeholder tiles
-  index?: number;
 }
 
 // Memoized tile component for smooth animations
-const Tile = memo(
-  ({ id, char, onClick, isPlaced, isDisabled, isBlank, index }: TileProps) => {
-    // Blank placeholder tile (invisible but takes space)
-    if (isBlank) {
-      return (
-        <div
-          className={clsx(
-            'relative flex items-center justify-center rounded-2xl px-4 py-3 text-2xl font-semibold sm:px-6 sm:py-4 sm:text-3xl',
-            'border-b-4 border-transparent bg-[var(--border-color)]/30',
-            'select-none'
-          )}
-        >
-          <span className='opacity-0'>{char}</span>
-        </div>
-      );
-    }
-
+const Tile = memo(({ id, char, onClick, isDisabled, isBlank }: TileProps) => {
+  // Blank placeholder tile (invisible but takes space)
+  if (isBlank) {
     return (
-      <motion.button
-        layoutId={id}
-        type='button'
-        onClick={onClick}
-        disabled={isDisabled}
+      <div
         className={clsx(
-          'relative flex cursor-pointer items-center justify-center rounded-2xl px-4 py-3 text-2xl font-semibold transition-colors sm:px-6 sm:py-4 sm:text-3xl',
-          'border-b-4 active:translate-y-[4px] active:border-b-0',
-          isPlaced
-            ? 'border-[var(--secondary-color-accent)] bg-[var(--secondary-color)] text-[var(--background-color)]'
-            : 'border-[var(--main-color-accent)] bg-[var(--main-color)] text-[var(--background-color)]',
-          isDisabled && 'cursor-not-allowed opacity-50'
+          'relative flex items-center justify-center rounded-2xl px-4 py-3 text-2xl font-semibold sm:px-6 sm:py-4 sm:text-3xl',
+          'border-b-4 border-transparent bg-[var(--border-color)]/30',
+          'select-none'
         )}
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.8 }}
-        transition={springConfig}
       >
-        {char}
-        {/* Keyboard hint */}
-        {!isPlaced && index !== undefined && (
-          <span
-            className={clsx(
-              'absolute top-1/2 right-2 hidden h-5 min-w-5 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--border-color)] px-1 text-xs leading-none lg:inline-flex',
-              'text-[var(--main-color)]'
-            )}
-          >
-            {index + 1}
-          </span>
-        )}
-      </motion.button>
+        <span className='opacity-0'>{char}</span>
+      </div>
     );
   }
-);
+
+  return (
+    <motion.button
+      layoutId={id}
+      type='button'
+      onClick={onClick}
+      disabled={isDisabled}
+      className={clsx(
+        'relative flex cursor-pointer items-center justify-center rounded-2xl px-4 py-3 text-2xl font-semibold transition-colors sm:px-6 sm:py-4 sm:text-3xl',
+        'border-b-4 active:translate-y-[4px] active:border-b-0',
+        'border-[var(--secondary-color-accent)] bg-[var(--secondary-color)] text-[var(--background-color)]',
+        isDisabled && 'cursor-not-allowed opacity-50'
+      )}
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.8 }}
+      transition={springConfig}
+    >
+      {char}
+    </motion.button>
+  );
+});
 
 Tile.displayName = 'Tile';
 
@@ -396,8 +379,8 @@ const WordBuildingGame = ({
 
       {/* Answer Row Area - bordered section like Duolingo */}
       <div className='flex w-full flex-col items-center'>
-        <div className='flex min-h-[4.5rem] w-full items-center justify-center border-t-2 border-b-2 border-[var(--border-color)] py-6 sm:w-1/2'>
-          <div className='flex flex-row flex-wrap justify-center gap-3'>
+        <div className='flex h-20 w-full items-center border-t-2 border-b-2 border-[var(--border-color)] px-4 sm:w-1/2'>
+          <div className='flex flex-row flex-wrap justify-start gap-3'>
             <AnimatePresence mode='popLayout'>
               {placedTiles.map((char, index) => (
                 <Tile
@@ -405,7 +388,6 @@ const WordBuildingGame = ({
                   id={`tile-${char}`}
                   char={char}
                   onClick={() => handleTileClick(char)}
-                  isPlaced
                   isDisabled={isChecking}
                 />
               ))}
@@ -425,8 +407,7 @@ const WordBuildingGame = ({
               char={char}
               onClick={() => handleTileClick(char)}
               isDisabled={isChecking}
-              isBlank={isPlaced} // Show blank placeholder when placed
-              index={!isPlaced ? index : undefined}
+              isBlank={isPlaced}
             />
           );
         })}
